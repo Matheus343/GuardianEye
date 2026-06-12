@@ -8,7 +8,6 @@
 [![YOLOv8](https://img.shields.io/badge/YOLOv8-Ultralytics-FF6B35?style=flat-square)](https://ultralytics.com)
 [![Flower](https://img.shields.io/badge/Flower-FedAvg-499848?style=flat-square)](https://flower.ai)
 [![FIWARE](https://img.shields.io/badge/FIWARE-Orion%203.10-5DC0CF?style=flat-square)](https://fiware.org)
-[![ASP.NET](https://img.shields.io/badge/ASP.NET-MVC%208.0-512BD4?style=flat-square&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white)](https://docker.com)
 [![AWS](https://img.shields.io/badge/AWS-EC2-FF9900?style=flat-square&logo=amazonwebservices&logoColor=white)](https://aws.amazon.com)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
@@ -24,58 +23,49 @@
 
 ## 📋 Sobre o Projeto
 
-O **Guardian Eye** é um sistema distribuído de monitoramento de Equipamentos de Proteção Individual (EPIs) em tempo real, desenvolvido para ambientes industriais. O sistema utiliza dispositivos **Raspberry Pi 4** como unidades de borda para capturar e processar imagens, detectar a presença ou ausência de EPIs com o modelo **YOLOv8n** e transmitir os dados para uma plataforma centralizada na nuvem (**AWS EC2**) por meio da stack de IoT **FIWARE**.
+O **Guardian Eye** é um sistema distribuído de monitoramento de Equipamentos de Proteção Individual (EPIs) em tempo real para ambientes industriais. Dispositivos **Raspberry Pi 4** atuam como unidades de borda: capturam frames via câmera, executam inferência local com o modelo **YOLOv8n** (ONNX Runtime, sem GPU) e transmitem os resultados para uma plataforma centralizada na nuvem (**AWS EC2**) por meio da stack de IoT **FIWARE**.
 
-O diferencial do projeto está na adoção do **Aprendizado Federado** com o framework **Flower (FedAvg)**: os dispositivos de borda refinam colaborativamente o modelo de detecção sem que as imagens dos trabalhadores sejam transmitidas para o servidor central, preservando a privacidade dos dados em conformidade com a **LGPD**. Os resultados de conformidade são exibidos em um **dashboard web** desenvolvido em ASP.NET MVC 8.0.
-
-### Funcionalidades
-
-- Detecção em tempo real de capacete, óculos de proteção e colete de segurança
-- Inferência local no dispositivo de borda via ONNX Runtime (sem GPU)
-- Refinamento colaborativo do modelo via Aprendizado Federado (FedAvg)
-- Transmissão de dados via MQTT/HTTP no formato Ultralight 2.0
-- Persistência histórica de detecções no MongoDB via FIWARE Cygnus
-- Dashboard web com gráficos de conformidade, alertas e relatórios por e-mail
+O diferencial do projeto é o **Aprendizado Federado** com o framework **Flower (FedAvg)**: os dispositivos refinam colaborativamente o modelo de detecção sem que nenhuma imagem dos trabalhadores seja transmitida ao servidor, preservando a privacidade dos dados em conformidade com a **LGPD**.
 
 ---
 
 ## 🏗️ Arquitetura
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         AWS EC2  (t3.medium)                        │
-│                                                                      │
-│  ┌──────────┐  ┌──────────────┐  ┌──────────┐  ┌───────────────┐  │
-│  │  Orion   │  │  IoT Agent   │  │  Cygnus  │  │  Flower       │  │
-│  │ Context  │◄─│  MQTT (UL2)  │  │(MongoDB  │  │  Server       │  │
-│  │ Broker   │  │  Port 4041   │  │ Sink)    │  │  FedAvg       │  │
-│  └────┬─────┘  └──────┬───────┘  └────┬─────┘  └──────┬────────┘  │
-│       │               │               │                │            │
-│  ┌────▼───────────────▼───────────────▼────┐   ┌──────▼────────┐  │
-│  │              MongoDB 4.4                 │   │  WebApp       │  │
-│  │         (estado atual + histórico)       │   │  ASP.NET MVC  │  │
-│  └──────────────────────────────────────────┘   └───────────────┘  │
-│                         ▲                                           │
-│               ┌──────────┴──────────┐                              │
-│               │   Mosquitto MQTT    │                               │
-│               │     Port 1883       │                               │
-│               └──────────┬──────────┘                              │
-└──────────────────────────┼──────────────────────────────────────────┘
-                           │ MQTT / HTTP
-          ┌────────────────┼────────────────┐
-          │                │                │
-   ┌──────▼──────┐  ┌──────▼──────┐        ·
-   │  Raspberry  │  │  Raspberry  │   (N dispositivos)
-   │   Pi 4 #1   │  │   Pi 4 #2   │
-   │             │  │             │
-   │ ┌─────────┐ │  │ ┌─────────┐ │
-   │ │YOLOv8n  │ │  │ │YOLOv8n  │ │
-   │ │  ONNX   │ │  │ │  ONNX   │ │
-   │ └─────────┘ │  │ └─────────┘ │
-   │  detection  │  │  detection  │
-   │  fl_client  │  │  fl_client  │
-   └─────────────┘  └─────────────┘
-        Camera            Camera
+┌──────────────────────────────────────────────────────────────────┐
+│                        AWS EC2  (t3.medium)                      │
+│                                                                   │
+│  ┌──────────┐  ┌──────────────┐  ┌──────────┐  ┌─────────────┐ │
+│  │  Orion   │  │  IoT Agent   │  │  Cygnus  │  │   Flower    │ │
+│  │ Context  │◄─│  MQTT (UL2)  │  │(MongoDB  │  │   Server    │ │
+│  │ Broker   │  │  Port 4041   │  │  Sink)   │  │   FedAvg    │ │
+│  └────┬─────┘  └──────┬───────┘  └────┬─────┘  └──────┬──────┘ │
+│       │               │               │                │         │
+│  ┌────▼───────────────▼───────────────▼────┐  ┌───────▼──────┐ │
+│  │             MongoDB 4.4                  │  │   Aplicação  │ │
+│  │        (estado atual + histórico)        │  │     Web      │ │
+│  └──────────────────────────────────────────┘  └──────────────┘ │
+│                        ▲                                          │
+│              ┌──────────┴──────────┐                             │
+│              │   Mosquitto MQTT    │                              │
+│              │     Port 1883       │                              │
+│              └──────────┬──────────┘                             │
+└─────────────────────────┼──────────────────────────────────────-─┘
+                          │ HTTP (Ultralight 2.0)
+         ┌────────────────┼────────────────┐
+         │                │                │
+  ┌──────▼──────┐  ┌──────▼──────┐        ·
+  │  Raspberry  │  │  Raspberry  │  (N dispositivos)
+  │   Pi 4 #1   │  │   Pi 4 #2   │
+  │             │  │             │
+  │ ┌─────────┐ │  │ ┌─────────┐ │
+  │ │YOLOv8n  │ │  │ │YOLOv8n  │ │
+  │ │  ONNX   │ │  │ │  ONNX   │ │
+  │ └─────────┘ │  │ └─────────┘ │
+  │  detection  │  │  detection  │
+  │  fl_client  │  │  fl_client  │
+  └─────────────┘  └─────────────┘
+       Camera            Camera
 ```
 
 ---
@@ -85,13 +75,12 @@ O diferencial do projeto está na adoção do **Aprendizado Federado** com o fra
 | Camada | Tecnologia | Versão | Função |
 |--------|-----------|--------|--------|
 | **Detecção** | YOLOv8n (Ultralytics) | 8.4.x | Modelo de visão computacional |
-| **Inferência** | ONNX Runtime | 1.18+ | Execução do modelo na Raspberry Pi |
-| **Federated Learning** | Flower (FedAvg) | 1.x | Agregação federada de pesos |
+| **Inferência** | ONNX Runtime | 1.18+ | Execução do modelo na Raspberry Pi sem GPU |
+| **Federated Learning** | Flower (FedAvg) | 1.7.0 | Agregação federada de pesos |
 | **IoT Middleware** | FIWARE Orion CB | 3.10.1 | Estado atual dos dispositivos (NGSI v2) |
-| **Protocolo IoT** | IoT Agent MQTT (UL2) | latest | Tradução Ultralight → NGSI |
-| **Broker MQTT** | Eclipse Mosquitto | 2.0 | Comunicação MQTT entre Pi e EC2 |
+| **Protocolo IoT** | IoT Agent MQTT (UL2) | latest | Tradução Ultralight 2.0 → NGSI |
+| **Broker MQTT** | Eclipse Mosquitto | 2.0 | Comunicação entre Pi e EC2 |
 | **Persistência** | FIWARE Cygnus + MongoDB | 4.4 | Histórico de detecções |
-| **Dashboard** | ASP.NET MVC | 8.0 | Interface web de monitoramento |
 | **Infraestrutura** | Docker Compose + AWS EC2 | t3.medium | Orquestração e hospedagem |
 | **Treinamento** | Google Colab (GPU T4) | — | Treinamento do modelo baseline |
 
@@ -116,7 +105,9 @@ epi-guardian/
 ├── 📂 edge/                           # Dispositivos Raspberry Pi 4
 │   ├── detection.py                   # Script principal de detecção em tempo real
 │   ├── fl_client.py                   # Cliente Flower (participa do treinamento federado)
-│   └── requirements.txt               # Dependências Python para a Raspberry Pi                
+│   ├── requirements.txt               # Dependências Python para a Raspberry Pi
+│   └── models/
+│       └── .gitkeep                   # Coloque o best.onnx aqui (não versionado)
 │
 ├── 📂 federated/                      # Aprendizado Federado
 │   ├── server.py                      # Servidor Flower com estratégia FedAvg
@@ -142,8 +133,8 @@ epi-guardian/
 
 ### Dispositivo de Borda (Raspberry Pi 4)
 - Raspberry Pi 4 com **4 GB** de RAM (recomendado)
-- Raspberry Pi OS (64-bit, Bookworm)
-- Módulo de câmera oficial ou USB
+- Raspberry Pi OS 64-bit (Bookworm)
+- Módulo de câmera CSI ou USB
 - Python 3.10+
 - Rede com acesso ao IP público da EC2
 
@@ -158,43 +149,19 @@ epi-guardian/
 ### 1. Infraestrutura — AWS EC2
 
 ```bash
-# Clone o repositório na EC2
 git clone https://github.com/seu-usuario/epi-guardian.git
 cd epi-guardian/infra
 
-# Configure as variáveis de ambiente
 cp .env.example .env
-nano .env   # preencha APIKEY, MONGO_URI, EMAIL_*, etc.
+nano .env   # preencha APIKEY, variáveis de e-mail, etc.
 
-# Instale Docker (se necessário)
 chmod +x setup_ec2.sh && sudo ./setup_ec2.sh
 
-# Suba a stack completa
 docker compose up -d
-
-# Verifique os containers
 docker compose ps
 ```
 
-Aguarde todos os serviços ficarem `healthy` e então provisione os dispositivos:
-
-```bash
-# Registrar serviço de EPI no IoT Agent
-curl -X POST http://localhost:4041/iot/services \
-  -H "Content-Type: application/json" \
-  -H "fiware-service: tcc" \
-  -H "fiware-servicepath: /" \
-  -d @docs/provisioning_service.json
-
-# Registrar dispositivo raspi01
-curl -X POST http://localhost:4041/iot/devices \
-  -H "Content-Type: application/json" \
-  -H "fiware-service: tcc" \
-  -H "fiware-servicepath: /" \
-  -d @docs/provisioning_raspi01.json
-```
-
-> Consulte [`docs/provisioning.md`](docs/provisioning.md) para o payload completo e instruções de registro do raspi02.
+Aguarde todos os serviços ficarem `healthy` e provisione os dispositivos conforme [`docs/provisioning.md`](docs/provisioning.md).
 
 ---
 
@@ -203,79 +170,48 @@ curl -X POST http://localhost:4041/iot/devices \
 ```bash
 # Instale as dependências
 pip3 install -r edge/requirements.txt --break-system-packages
-
-# Instale o picamera2 (se necessário)
 sudo apt install python3-picamera2 -y
 
-# Copie o modelo ONNX para a pasta models/
-# (gerado pelo notebook 02_train_baseline.ipynb)
-cp best.onnx edge/models/
+# Coloque o modelo ONNX na pasta correta
+cp best.onnx /home/cefsa1/yolo_scripts/best.onnx
 
-# Execute o script de detecção
-cd edge
-python3 detection.py
+# Execute a detecção
+python3 edge/detection.py
 ```
 
-Para que o script inicie automaticamente no boot:
-
-```bash
-# Crie o serviço systemd
-sudo nano /etc/systemd/system/epi-detection.service
-# (conteúdo disponível em docs/systemd_service.md)
-
-sudo systemctl enable epi-detection
-sudo systemctl start epi-detection
-```
+Para iniciar automaticamente no boot, configure um serviço `systemd` apontando para `detection.py`.
 
 ---
 
 ### 3. Aprendizado Federado
 
-O servidor Flower já sobe automaticamente via `docker compose`. Para iniciar uma sessão de treinamento federado, execute o cliente em cada Raspberry Pi:
+O servidor Flower sobe automaticamente via `docker compose`. Para iniciar uma sessão de treinamento federado, execute em cada Raspberry Pi:
 
 ```bash
-cd edge
-python3 fl_client.py --server <IP_EC2>:8080 --device-id raspi01
+python3 edge/fl_client.py --server <IP_EC2>:8080 --device-id raspi01
+# Na segunda Pi:
+python3 edge/fl_client.py --server <IP_EC2>:8080 --device-id raspi02
 ```
 
-O servidor aguarda o número mínimo de clientes conectados antes de iniciar o primeiro round. Após a conclusão dos rounds configurados, o modelo global atualizado é exportado automaticamente para ONNX e distribuído aos dispositivos.
-
----
-
-### 4. Dashboard Web
-
-O dashboard sobe automaticamente via `docker compose` na porta `5000`. Acesse:
-
-```
-http://<IP_EC2>:5000
-```
-
-Para desenvolvimento local:
-
-```bash
-cd dashboard/Guardian Eye.Web
-dotnet restore
-dotnet run
-```
+O servidor aguarda o número mínimo de clientes (`FL_MIN_CLIENTS`) antes de iniciar o Round 1. Ao final dos rounds, o modelo global é salvo em `federated/global_models/` e o `best.onnx` nos dispositivos é substituído após validação automática.
 
 ---
 
 ## 🔬 Treinamento do Modelo
 
-Os notebooks em `training/` reproduzem todo o pipeline de preparação de dados e treinamento. Execute na ordem:
+O arquivo `training/ppe_custom.yaml` contém a configuração do dataset utilizado no treinamento do baseline:
 
-| Notebook | Descrição |
-|----------|-----------|
-| `01_dataset_preparation.ipynb` | Download do *Construction-PPE*, filtragem para 4 classes, balanceamento de óculos de proteção (duplicação + augmentação), divisão 70/30 |
-| `02_train_baseline.ipynb` | Treinamento YOLOv8n — 100 épocas, imgsz 640, batch 16, GPU T4 — exportação para ONNX opset 12 |
+- **Dataset:** Construction-PPE (Ultralytics) — ~3.000 imagens originais
+- **Classes:** capacete (0), óculos de proteção (1), colete de segurança (2), person (3)
+- **Divisão:** 70% treino (1.142 imagens) / 30% validação (284 imagens)
+- **Treinamento:** YOLOv8n · 100 épocas · imgsz 640 · batch 16 · GPU Tesla T4 · ~1h03min
+- **Exportação:** ONNX opset 12 · 6,3 MB
 
 ---
 
 ## 📊 Resultados
 
 ### Modelo Baseline (sem Aprendizado Federado)
-
-Treinamento: 100 épocas · GPU Tesla T4 · ~1h03min · 3.006.233 parâmetros · 8,1 GFLOPs
 
 | Classe | Precisão | Recall | mAP50 | mAP50-95 |
 |--------|----------|--------|-------|----------|
@@ -284,9 +220,9 @@ Treinamento: 100 épocas · GPU Tesla T4 · ~1h03min · 3.006.233 parâmetros ·
 | Colete de segurança | 87,9% | 76,6% | 83,7% | 50,5% |
 | **Média geral** | **86,5%** | **77,4%** | **81,8%** | **43,2%** |
 
-### Confiança Média em Cenário Controlado (Baseline sem FL)
+### Confiança em Cenário Controlado (Baseline sem FL)
 
-Câmera a 1.540 mm de altura · 560 mm do sujeito · 54 lux de iluminação
+Câmera a 1.540 mm · distância 560 mm · 54 lux
 
 | Classe | Confiança média |
 |--------|----------------|
@@ -294,38 +230,51 @@ Câmera a 1.540 mm de altura · 560 mm do sujeito · 54 lux de iluminação
 | Óculos de proteção | 68,68% |
 | Colete de segurança | 51,75% |
 
-> Os incrementos promovidos pelas rodadas de Aprendizado Federado sobre esses valores estão detalhados no artigo do TCC.
+> Os incrementos promovidos pelas rodadas de Aprendizado Federado estão detalhados no artigo do TCC.
+
+---
+
+## 🖥️ Aplicação Web
+
+A arquitetura do Guardian Eye é agnóstica quanto à camada de visualização — qualquer aplicação capaz de consumir a API NGSI v2 do Orion Context Broker ou consultar diretamente o MongoDB pode ser utilizada como dashboard.
+
+Para este projeto, foi desenvolvida uma aplicação web com a seguinte stack:
+
+| Componente | Tecnologia |
+|------------|-----------|
+| Framework | ASP.NET Core MVC 8.0 (C#) |
+| Frontend | Razor Views + CSS customizado |
+| Gráficos | Chart.js (CDN) |
+| Banco de dados | MongoDB.Driver 3.7.1 (NuGet) |
+| Autenticação | Cookie Authentication (ASP.NET Identity) |
+| E-mail | MailKit — relatório diário via Gmail SMTP |
+| Container | Docker (Dockerfile multi-stage) |
+
+A aplicação expõe as seguintes páginas: **Dashboard** (KPIs em tempo real com refresh a cada 5 minutos), **Histórico** (últimas 50 inspeções das 24h anteriores por dispositivo), **Gráficos** (taxa de conformidade OK/NOK, EPIs mais ausentes e confiança por dispositivo) e **Gestão de usuários** (CRUD — perfil admin).
 
 ---
 
 ## 🗂️ Variáveis de Ambiente
 
-Copie `infra/.env.example` para `infra/.env` e preencha:
+Copie `infra/.env.example` para `infra/.env` e preencha os valores:
 
 ```env
-# FIWARE
 FIWARE_SERVICE=tcc
 APIKEY=tcc2026
 
-# MongoDB
 MONGO_HOST=mongodb
 MONGO_PORT=27017
-MONGO_DB=epi_guardian
 
-# Flower
 FL_SERVER_PORT=8080
 FL_MIN_CLIENTS=2
 FL_NUM_ROUNDS=50
 
-# Dashboard / E-mail
 WEBAPP_PORT=5000
-EMAIL_HOST=smtp.gmail.com
-EMAIL_PORT=587
 EMAIL_USER=seu@email.com
 EMAIL_PASS=sua_senha_app
 ```
 
-> ⚠️ **Nunca versione o arquivo `.env`** com credenciais reais. O `.gitignore` já o exclui por padrão.
+> ⚠️ Nunca versione o arquivo `.env` com credenciais reais — o `.gitignore` já o exclui por padrão.
 
 ---
 
@@ -335,7 +284,7 @@ EMAIL_PASS=sua_senha_app
 |------|--------|
 | **Adriana Monteiro Martani** | Desenvolvimento e documentação |
 | **Analuz Marin Ramos** | Desenvolvimento e documentação |
-| **Matheus Galdino Xavier** | Desenvolvimento e documentação |
+| **Matheus** | Desenvolvimento e documentação |
 | **Yasmin Laisa Maciel** | Desenvolvimento e documentação |
 
 **Orientador:** Prof. Dr. Fábio Henrique Cabrini  
