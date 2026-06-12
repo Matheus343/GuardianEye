@@ -105,9 +105,7 @@ epi-guardian/
 ├── 📂 edge/                           # Dispositivos Raspberry Pi 4
 │   ├── detection.py                   # Script principal de detecção em tempo real
 │   ├── fl_client.py                   # Cliente Flower (participa do treinamento federado)
-│   ├── requirements.txt               # Dependências Python para a Raspberry Pi
-│   └── models/
-│       └── .gitkeep                   # Coloque o best.onnx aqui (não versionado)
+│   └── requirements.txt               # Dependências Python para a Raspberry Pi
 │
 ├── 📂 federated/                      # Aprendizado Federado
 │   ├── server.py                      # Servidor Flower com estratégia FedAvg
