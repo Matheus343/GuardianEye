@@ -1,0 +1,19 @@
+# EPI Guardian — Dependências Raspberry Pi 4
+# Instale com: pip install -r requirements.txt --break-system-packages
+
+# Inferência ONNX
+onnxruntime>=1.18.0
+
+# Manipulação de imagens e visão computacional
+opencv-python-headless>=4.9.0
+numpy>=1.26.0
+
+# Comunicação HTTP com IoT Agent
+requests>=2.31.0
+
+# Aprendizado Federado
+flwr==1.7.0
+onnx>=1.16.0
+
+# picamera2 — instalar via apt (não pip):
+# sudo apt install python3-picamera2 -y
