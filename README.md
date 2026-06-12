@@ -282,7 +282,7 @@ EMAIL_PASS=sua_senha_app
 |------|--------|
 | **Adriana Monteiro Martani** | Desenvolvimento e documentação |
 | **Analuz Marin Ramos** | Desenvolvimento e documentação |
-| **Matheus** | Desenvolvimento e documentação |
+| **Matheus Galdino Xavier** | Desenvolvimento e documentação |
 | **Yasmin Laisa Maciel** | Desenvolvimento e documentação |
 
 **Orientador:** Prof. Dr. Fábio Henrique Cabrini  
