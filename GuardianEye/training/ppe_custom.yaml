@@ -1,0 +1,26 @@
+# EPI Guardian — Dataset Configuration (YOLOv8)
+# Gerado após filtragem e remapeamento do Construction-PPE (Ultralytics)
+#
+# Divisão:
+#   train: 1.142 imagens (70%)
+#   val:     284 imagens (30%)
+#
+# Classes remapeadas do dataset original:
+#   capacete  ← helmet  (ID 0 original)
+#   oculos    ← goggles (ID 4 original)
+#   colete    ← vest    (ID 2 original)
+#   person    ← Person  (ID 6 original)
+
+path: /content/datasets/construction-ppe
+
+train: images/train
+val:   images/val
+test:  images/test
+
+nc: 4
+
+names:
+  0: capacete
+  1: oculos
+  2: colete
+  3: person
