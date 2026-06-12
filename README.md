@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🦺 EPI Guardian
+# 🦺 Guardian Eye
 
 **Sistema de Monitoramento de EPIs com Aprendizado Federado em Ambiente Industrial**
 
@@ -24,7 +24,7 @@
 
 ## 📋 Sobre o Projeto
 
-O **EPI Guardian** é um sistema distribuído de monitoramento de Equipamentos de Proteção Individual (EPIs) em tempo real, desenvolvido para ambientes industriais. O sistema utiliza dispositivos **Raspberry Pi 4** como unidades de borda para capturar e processar imagens, detectar a presença ou ausência de EPIs com o modelo **YOLOv8n** e transmitir os dados para uma plataforma centralizada na nuvem (**AWS EC2**) por meio da stack de IoT **FIWARE**.
+O **Guardian Eye** é um sistema distribuído de monitoramento de Equipamentos de Proteção Individual (EPIs) em tempo real, desenvolvido para ambientes industriais. O sistema utiliza dispositivos **Raspberry Pi 4** como unidades de borda para capturar e processar imagens, detectar a presença ou ausência de EPIs com o modelo **YOLOv8n** e transmitir os dados para uma plataforma centralizada na nuvem (**AWS EC2**) por meio da stack de IoT **FIWARE**.
 
 O diferencial do projeto está na adoção do **Aprendizado Federado** com o framework **Flower (FedAvg)**: os dispositivos de borda refinam colaborativamente o modelo de detecção sem que as imagens dos trabalhadores sejam transmitidas para o servidor central, preservando a privacidade dos dados em conformidade com a **LGPD**. Os resultados de conformidade são exibidos em um **dashboard web** desenvolvido em ASP.NET MVC 8.0.
 
@@ -127,14 +127,14 @@ epi-guardian/
 │   └── requirements.txt
 │
 ├── 📂 dashboard/                      # WebApp ASP.NET MVC 8.0
-│   └── EpiGuardian.Web/
+│   └── Guardian Eye.Web/
 │       ├── Controllers/               # HomeController, DashboardController, AuthController
 │       ├── Models/                    # DetectionRecord, DeviceStatus, ReportModel
 │       ├── Views/                     # Razor views (Index, Dashboard, Graficos, Login)
 │       ├── Services/                  # MongoDbService, EmailService
 │       ├── wwwroot/                   # Chart.js, CSS, assets estáticos
 │       ├── appsettings.json
-│       └── EpiGuardian.Web.csproj
+│       └── Guardian Eye.Web.csproj
 │
 ├── 📂 training/                       # Notebooks Google Colab
 │   ├── 01_dataset_preparation.ipynb   # Filtragem, remapeamento e balanceamento do dataset
@@ -270,7 +270,7 @@ http://<IP_EC2>:5000
 Para desenvolvimento local:
 
 ```bash
-cd dashboard/EpiGuardian.Web
+cd dashboard/Guardian Eye.Web
 dotnet restore
 dotnet run
 ```
