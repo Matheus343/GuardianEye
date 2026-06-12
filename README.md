@@ -122,29 +122,14 @@ epi-guardian/
 │
 ├── 📂 federated/                      # Aprendizado Federado
 │   ├── server.py                      # Servidor Flower com estratégia FedAvg
-│   ├── simulation.py                  # Simulação local de rounds federados
 │   ├── Dockerfile                     # Container do servidor Flower
 │   └── requirements.txt
 │
-├── 📂 dashboard/                      # WebApp ASP.NET MVC 8.0
-│   └── Guardian Eye.Web/
-│       ├── Controllers/               # HomeController, DashboardController, AuthController
-│       ├── Models/                    # DetectionRecord, DeviceStatus, ReportModel
-│       ├── Views/                     # Razor views (Index, Dashboard, Graficos, Login)
-│       ├── Services/                  # MongoDbService, EmailService
-│       ├── wwwroot/                   # Chart.js, CSS, assets estáticos
-│       ├── appsettings.json
-│       └── Guardian Eye.Web.csproj
-│
-├── 📂 training/                       # Notebooks Google Colab
-│   ├── 01_dataset_preparation.ipynb   # Filtragem, remapeamento e balanceamento do dataset
-│   └── 02_train_baseline.ipynb        # Treinamento YOLOv8n (100 épocas, 640px)
+├── 📂 training/                       # Configuração do treinamento
+│   └── ppe_custom.yaml                # Dataset config (4 classes, split 70/30)
 │
 └── 📂 docs/                           # Documentação complementar
-    ├── provisioning.md                # Provisionamento dos dispositivos no IoT Agent
-    ├── fiware_setup.md                # Configuração das subscriptions FIWARE
-    └── images/
-        └── architecture.png
+    └── provisioning.md                # Provisionamento dos dispositivos no IoT Agent
 ```
 
 ---
