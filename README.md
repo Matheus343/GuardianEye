@@ -92,7 +92,6 @@ O diferencial do projeto é o **Aprendizado Federado** com o framework **Flower 
 epi-guardian/
 │
 ├── 📄 README.md
-├── 📄 LICENSE
 ├── 📄 .gitignore
 │
 ├── 📂 infra/                          # Infraestrutura AWS EC2
