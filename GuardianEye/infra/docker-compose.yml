@@ -1,0 +1,152 @@
+services:
+
+  # ── Banco de dados principal ──────────────────────────────────────────────
+  mongodb:
+    image: mongo:4.4
+    container_name: mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - fiware
+
+  # ── Orion Context Broker — estado atual dos dispositivos ──────────────────
+  orion:
+    image: fiware/orion:3.10.1
+    container_name: orion
+    restart: always
+    depends_on:
+      - mongodb
+    ports:
+      - "1026:1026"
+    command: -dbhost mongodb -logLevel DEBUG
+    networks:
+      - fiware
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:1026/version"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # ── Broker MQTT ───────────────────────────────────────────────────────────
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: mosquitto
+    restart: always
+    stop_grace_period: 5s      # evita conflito de porta 1883 ao reiniciar
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    networks:
+      - fiware
+
+  # ── IoT Agent MQTT — traduz Ultralight 2.0 → NGSI v2 ─────────────────────
+  iot-agent-mqtt:
+    image: fiware/iotagent-ul:latest
+    container_name: iot-agent-mqtt
+    restart: always
+    depends_on:
+      - mongodb
+      - mosquitto
+    ports:
+      - "4041:4041"
+      - "7896:7896"
+    environment:
+      - IOTA_CB_HOST=orion
+      - IOTA_CB_PORT=1026
+      - IOTA_NORTH_PORT=4041
+      - IOTA_REGISTRY_TYPE=mongodb
+      - IOTA_MONGO_HOST=mongodb
+      - IOTA_MONGO_PORT=27017
+      - IOTA_MONGO_DB=iotagentul
+      - IOTA_MQTT_HOST=mosquitto
+      - IOTA_MQTT_PORT=1883
+      - IOTA_DEFAULT_RESOURCE=/iot/d
+      - IOTA_PROVIDER_URL=http://iot-agent-mqtt:4041
+      - IOTA_DEFAULT_TRANSPORT=HTTP
+      - IOTA_LOG_LEVEL=DEBUG
+    networks:
+      - fiware
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4041/iot/about"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # ── STH-Comet — componente histórico FIWARE (mantido inativo) ─────────────
+  sth-comet:
+    image: fiware/sth-comet:2.3.0
+    container_name: sth-comet
+    restart: always
+    depends_on:
+      - mongodb
+    ports:
+      - "8668:8668"
+    environment:
+      - STH_HOST=0.0.0.0
+      - STH_PORT=8668
+      - DB_PREFIX=sth_
+      - DB_URI=mongodb:27017
+      - LOGOPS_LEVEL=DEBUG
+      - FILTER_OUT_EMPTY=true
+    networks:
+      - fiware
+
+  # ── Cygnus — persiste histórico de detecções no MongoDB ──────────────────
+  cygnus:
+    image: fiware/cygnus-ngsi:latest
+    container_name: cygnus
+    restart: always
+    depends_on:
+      - mongodb
+    ports:
+      - "5051:5051"
+      - "5080:5080"
+    environment:
+      - CYGNUS_MONGO_HOSTS=mongodb:27017
+      - CYGNUS_MONGO_SERVICE_PORT=5051
+      - CYGNUS_API_PORT=5080
+      - CYGNUS_LOG_LEVEL=DEBUG
+    networks:
+      - fiware
+
+  # ── Flower FedAvg — servidor de aprendizado federado ─────────────────────
+  flower-server:
+    image: python:3.10-slim
+    container_name: flower-server
+    restart: always
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./flower:/app
+    working_dir: /app
+    command: bash -c "pip install flwr==1.7.0 --quiet && python server.py"
+    networks:
+      - fiware
+
+  # ── WebApp ASP.NET MVC 8.0 — dashboard de monitoramento ──────────────────
+  webapp:
+    build: ./WebApp
+    container_name: webapp
+    restart: always
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongodb
+      - orion
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:5000
+    networks:
+      - fiware
+
+# ── Volumes e redes ───────────────────────────────────────────────────────────
+volumes:
+  mongo_data:
+
+networks:
+  fiware:
+    driver: bridge
