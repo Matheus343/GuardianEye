@@ -1,0 +1,65 @@
+# ── Ambiente ──────────────────────────────────────────────────────────────────
+.env
+*.env.local
+*.env.production
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+venv/
+.venv/
+env/
+*.egg-info/
+dist/
+build/
+*.so
+
+# ── Modelos e pesos (binários grandes — use releases do GitHub) ───────────────
+edge/models/*.onnx
+edge/models/*.pt
+edge/models/*.weights
+federated/global_model/
+federated/rounds/
+*.npz
+
+# ── Dados e datasets ──────────────────────────────────────────────────────────
+datasets/
+data/
+*.csv
+*.json.bak
+
+# ── Logs e runs do YOLOv8 ─────────────────────────────────────────────────────
+runs/
+*.log
+wandb/
+
+# ── .NET / ASP.NET ────────────────────────────────────────────────────────────
+dashboard/**/bin/
+dashboard/**/obj/
+dashboard/**/*.user
+dashboard/**/.vs/
+dashboard/**/publish/
+dashboard/**/*.suo
+dashboard/**/appsettings.Development.json
+
+# ── Docker ────────────────────────────────────────────────────────────────────
+infra/mosquitto/data/
+infra/mosquitto/log/
+
+# ── Jupyter / Colab ───────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+training/**/.ipynb_checkpoints/
+
+# ── Sistema operacional ───────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# ── IDEs ──────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.code-workspace
